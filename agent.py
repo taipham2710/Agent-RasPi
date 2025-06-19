@@ -24,7 +24,10 @@ class IoTAgent:
             self.logger.info("IoT Agent initialized successfully")
         except Exception as e:
             self.logger.error(f"Failed to initialize IoT Agent: {e}")
-            raise
+            # Continue without Docker if it fails
+            self.docker_manager = None
+            self.system_monitor = None
+            self.logger.warning("Continuing without Docker manager and system monitor")
     
     def setup_signal_handlers(self):
         """Setup signal handlers for graceful shutdown"""
@@ -42,7 +45,10 @@ class IoTAgent:
         self.running = True
         
         # Log initial system info
-        log_system_info(self.logger)
+        try:
+            log_system_info(self.logger)
+        except Exception as e:
+            self.logger.warning(f"Could not log system info: {e}")
         
         # Schedule tasks
         self._setup_schedules()
@@ -75,11 +81,13 @@ class IoTAgent:
         # Heartbeat
         schedule.every(Config.HEARTBEAT_INTERVAL).seconds.do(self._perform_heartbeat)
         
-        # System monitoring
-        schedule.every(Config.LOG_INTERVAL).seconds.do(self._perform_system_monitoring)
+        # System monitoring (only if available)
+        if self.system_monitor:
+            schedule.every(Config.LOG_INTERVAL).seconds.do(self._perform_system_monitoring)
         
-        # Container updates
-        schedule.every(Config.UPDATE_CHECK_INTERVAL).seconds.do(self._perform_container_update)
+        # Container updates (only if Docker is available)
+        if self.docker_manager:
+            schedule.every(Config.UPDATE_CHECK_INTERVAL).seconds.do(self._perform_container_update)
         
         self.logger.info("Scheduled tasks configured")
     
@@ -96,6 +104,10 @@ class IoTAgent:
     
     def _perform_system_monitoring(self):
         """Perform system monitoring"""
+        if not self.system_monitor:
+            self.logger.debug("System monitor not available, skipping monitoring")
+            return
+            
         try:
             # Get system health
             health = self.system_monitor.get_health_status()
@@ -120,6 +132,10 @@ class IoTAgent:
     
     def _perform_container_update(self):
         """Perform container update check"""
+        if not self.docker_manager:
+            self.logger.debug("Docker manager not available, skipping container update")
+            return
+            
         try:
             # Check for updates from backend
             update_info = self.backend_client.check_for_updates()
@@ -146,19 +162,33 @@ class IoTAgent:
     def get_status(self) -> dict:
         """Get agent status"""
         try:
-            container_status = self.docker_manager.get_container_status()
-            system_health = self.system_monitor.get_health_status()
-            
-            return {
+            status = {
                 "agent_running": self.running,
-                "container_status": container_status,
-                "system_health": system_health,
                 "config": {
                     "device_name": Config.DEVICE_NAME,
                     "device_id": Config.DEVICE_ID,
                     "backend_url": Config.BACKEND_URL
                 }
             }
+            
+            # Add Docker status if available
+            if self.docker_manager:
+                try:
+                    container_status = self.docker_manager.get_container_status()
+                    status["container_status"] = container_status
+                except Exception as e:
+                    status["container_status"] = {"error": str(e)}
+            
+            # Add system health if available
+            if self.system_monitor:
+                try:
+                    system_health = self.system_monitor.get_health_status()
+                    status["system_health"] = system_health
+                except Exception as e:
+                    status["system_health"] = {"error": str(e)}
+            
+            return status
+            
         except Exception as e:
             self.logger.error(f"Error getting status: {e}")
             return {"error": str(e)}
