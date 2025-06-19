@@ -44,11 +44,9 @@ class BackendClient:
     def send_heartbeat(self) -> bool:
         """Send heartbeat to backend"""
         data = {
-            "device_name": Config.DEVICE_NAME,
-            "device_id": Config.DEVICE_ID,
-            "timestamp": time.time()
+            "name": Config.DEVICE_NAME,
+            "last_seen": time.strftime("%Y-%m-%dT%H:%M:%S")
         }
-        
         result = self._make_request("POST", "/device/heartbeat", data)
         if result:
             logger.info("Heartbeat sent successfully")
@@ -61,10 +59,8 @@ class BackendClient:
         """Send log message to backend"""
         data = {
             "device_id": Config.DEVICE_ID,
-            "device_name": Config.DEVICE_NAME,
             "message": message,
-            "level": level,
-            "timestamp": time.time()
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")
         }
         
         result = self._make_request("POST", "/log", data)
