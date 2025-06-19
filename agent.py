@@ -58,16 +58,25 @@ class IoTAgent:
         self._perform_system_monitoring()
         
         # Main loop
+        consecutive_errors = 0
         while self.running:
             try:
                 schedule.run_pending()
                 time.sleep(1)
+                consecutive_errors = 0  # Reset error counter on successful iteration
             except KeyboardInterrupt:
                 self.logger.info("Keyboard interrupt received")
                 break
             except Exception as e:
-                self.logger.error(f"Error in main loop: {e}")
-                time.sleep(5)  # Wait before retrying
+                consecutive_errors += 1
+                self.logger.error(f"Error in main loop (attempt {consecutive_errors}): {e}")
+                
+                # If too many consecutive errors, wait longer
+                if consecutive_errors > Config.MAX_CONSECUTIVE_ERRORS:
+                    self.logger.warning(f"Too many consecutive errors, waiting {Config.ERROR_WAIT_TIME} seconds before retry")
+                    time.sleep(Config.ERROR_WAIT_TIME)
+                else:
+                    time.sleep(Config.RETRY_DELAY)  # Wait before retrying
         
         self.logger.info("IoT Agent stopped")
     
