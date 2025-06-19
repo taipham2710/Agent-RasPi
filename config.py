@@ -29,5 +29,9 @@ class Config:
     MAX_RETRIES = int(os.getenv("MAX_RETRIES", "3"))
     RETRY_DELAY = int(os.getenv("RETRY_DELAY", "5"))
     
+    # Error handling
+    MAX_CONSECUTIVE_ERRORS = int(os.getenv("MAX_CONSECUTIVE_ERRORS", "5"))
+    ERROR_WAIT_TIME = int(os.getenv("ERROR_WAIT_TIME", "30"))
+    
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO") 
