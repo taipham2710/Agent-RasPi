@@ -63,7 +63,7 @@ class BackendClient:
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")
         }
         
-        result = self._make_request("POST", "/log", data)
+        result = self._make_request("POST", "/logs", data)
         if result:
             logger.debug(f"Log sent successfully: {message}")
             return True
