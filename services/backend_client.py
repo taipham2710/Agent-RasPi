@@ -1,8 +1,10 @@
-import requests
-import time
-from typing import Dict, Any, Optional
-from config import Config
 import logging
+import time
+from typing import Any, Dict, Optional
+
+import requests
+
+from config import Config
 
 logger = logging.getLogger("iot_agent")
 

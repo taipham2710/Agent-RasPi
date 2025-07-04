@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-Test script for IoT Agent modules
+Test script for the IoT Agent
 """
 
 import sys
 import time
+
 from config import Config
-from utils.logger import setup_logger
 from services.backend_client import BackendClient
 from services.docker_manager import DockerManager
 from services.system_monitor import SystemMonitor
+from utils.logger import setup_logger
 
 
 def test_config():

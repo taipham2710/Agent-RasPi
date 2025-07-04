@@ -1,9 +1,11 @@
-import docker
-import time
-from typing import Optional, Dict, Any
-from config import Config
 import logging
+import time
+from typing import Any, Dict, Optional
+
+import docker
 from docker.errors import NotFound
+
+from config import Config
 
 logger = logging.getLogger("iot_agent")
 

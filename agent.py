@@ -1,15 +1,17 @@
-import time
 import signal
 import sys
-import schedule
+import time
 from typing import Optional
+
+import schedule
+
 from config import Config
-from utils.logger import setup_logger, log_system_info
 from services.backend_client import BackendClient
 from services.docker_manager import DockerManager
-from services.system_monitor import SystemMonitor
 from services.mqtt_client import MqttClient
 from services.sensor_simulator import SensorSimulator
+from services.system_monitor import SystemMonitor
+from utils.logger import log_system_info, setup_logger
 
 
 class IoTAgent:

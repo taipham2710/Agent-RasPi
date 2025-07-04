@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Development script for running IoT Agent with debug logging
+Development runner for the IoT Agent
 """
 
 import os
 import sys
+
 from agent import IoTAgent
 
 

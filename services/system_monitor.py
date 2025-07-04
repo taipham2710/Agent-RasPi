@@ -1,8 +1,10 @@
-import psutil
-import time
-from typing import Dict, Any
-from config import Config
 import logging
+import time
+from typing import Any, Dict
+
+import psutil
+
+from config import Config
 
 logger = logging.getLogger("iot_agent")
 

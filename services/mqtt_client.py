@@ -1,5 +1,6 @@
-import paho.mqtt.client as mqtt
 import threading
+
+import paho.mqtt.client as mqtt
 
 
 class MqttClient:
