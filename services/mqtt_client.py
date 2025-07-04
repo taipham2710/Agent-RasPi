@@ -1,8 +1,10 @@
 import paho.mqtt.client as mqtt
 import threading
 
+
 class MqttClient:
     """MQTT client for agent communication. Supports connect, subscribe, publish, and message callback."""
+
     def __init__(self, broker, port, topic_sub, topic_pub, on_message=None):
         self.broker = broker
         self.port = port
@@ -21,7 +23,9 @@ class MqttClient:
         print(f"[MQTT] Successfully subscribed to: {self.topic_sub}")
 
     def _on_message(self, client, userdata, msg):
-        print(f"[MQTT] Message received on topic: {msg.topic} | Payload: {msg.payload.decode()}")
+        print(
+            f"[MQTT] Message received on topic: {msg.topic} | Payload: {msg.payload.decode()}"
+        )
         if self.on_message:
             self.on_message(msg.topic, msg.payload.decode())
 
@@ -35,4 +39,4 @@ class MqttClient:
 
     def publish(self, message):
         print(f"[MQTT] Publishing to topic {self.topic_pub}: {message}")
-        self.client.publish(self.topic_pub, message) 
+        self.client.publish(self.topic_pub, message)

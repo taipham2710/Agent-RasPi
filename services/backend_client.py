@@ -4,23 +4,30 @@ from typing import Dict, Any, Optional
 from config import Config
 import logging
 
-logger = logging.getLogger('iot_agent')
+logger = logging.getLogger("iot_agent")
+
 
 class BackendClient:
     """Client for communicating with the backend API"""
-    
+
     def __init__(self):
         self.base_url = Config.BACKEND_URL
         self.timeout = Config.BACKEND_TIMEOUT
         self.session = requests.Session()
-    
-    def _make_request(self, method: str, endpoint: str, data: Optional[Dict] = None, retries: Optional[int] = None) -> Optional[Dict]:
+
+    def _make_request(
+        self,
+        method: str,
+        endpoint: str,
+        data: Optional[Dict] = None,
+        retries: Optional[int] = None,
+    ) -> Optional[Dict]:
         """Make HTTP request with retry logic"""
         if retries is None:
             retries = Config.MAX_RETRIES
-            
+
         url = f"{self.base_url}{endpoint}"
-        
+
         for attempt in range(retries + 1):
             try:
                 if method.upper() == "GET":
@@ -29,23 +36,25 @@ class BackendClient:
                     response = self.session.post(url, json=data, timeout=self.timeout)
                 else:
                     raise ValueError(f"Unsupported HTTP method: {method}")
-                
+
                 response.raise_for_status()
                 return response.json() if response.content else None
-                
+
             except requests.exceptions.RequestException as e:
-                logger.warning(f"Request failed (attempt {attempt + 1}/{retries + 1}): {e}")
+                logger.warning(
+                    f"Request failed (attempt {attempt + 1}/{retries + 1}): {e}"
+                )
                 if attempt < retries:
                     time.sleep(Config.RETRY_DELAY)
                 else:
                     logger.error(f"Request failed after {retries + 1} attempts")
                     return None
-    
+
     def send_heartbeat(self) -> bool:
         """Send heartbeat to backend"""
         data = {
             "name": Config.DEVICE_NAME,
-            "last_seen": time.strftime("%Y-%m-%dT%H:%M:%S")
+            "last_seen": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
         result = self._make_request("POST", "/device/heartbeat", data)
         if result:
@@ -54,15 +63,15 @@ class BackendClient:
         else:
             logger.error("Failed to send heartbeat")
             return False
-    
+
     def send_log(self, message: str, level: str = "INFO") -> bool:
         """Send log message to backend"""
         data = {
             "device_id": Config.DEVICE_ID,
             "message": message,
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S")
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
-        
+
         result = self._make_request("POST", "/logs", data)
         if result:
             logger.debug(f"Log sent successfully: {message}")
@@ -70,11 +79,11 @@ class BackendClient:
         else:
             logger.error(f"Failed to send log: {message}")
             return False
-    
+
     def get_device_status(self) -> Optional[Dict]:
         """Get device status from backend"""
         return self._make_request("GET", f"/device/{Config.DEVICE_ID}/status")
-    
+
     def check_for_updates(self) -> Optional[Dict]:
         """Check for available updates"""
-        return self._make_request("GET", f"/device/{Config.DEVICE_ID}/updates") 
+        return self._make_request("GET", f"/device/{Config.DEVICE_ID}/updates")
