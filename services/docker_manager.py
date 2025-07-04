@@ -8,15 +8,87 @@ from docker.errors import NotFound
 logger = logging.getLogger('iot_agent')
 
 class DockerManager:
-    """Manager for Docker operations"""
+    """Manager for Docker operations with rollback support"""
     
     def __init__(self):
         try:
             self.client = docker.from_env()
+            self.previous_image_tag = None  # Store previous image for rollback
             logger.info("Docker client initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize Docker client: {e}")
             raise
+    
+    def save_current_state(self) -> bool:
+        """Save current container state for potential rollback"""
+        try:
+            current_tag = self.get_current_image_tag()
+            if current_tag:
+                self.previous_image_tag = current_tag
+                logger.info(f"Saved current image for rollback: {current_tag}")
+                return True
+            else:
+                logger.warning("No current image found to save for rollback")
+                return False
+        except Exception as e:
+            logger.error(f"Failed to save current state: {e}")
+            return False
+    
+    def rollback_to_previous(self) -> bool:
+        """Rollback to previous image if available"""
+        if not self.previous_image_tag:
+            logger.error("No previous image available for rollback")
+            return False
+        
+        try:
+            logger.info(f"Starting rollback to previous image: {self.previous_image_tag}")
+            
+            # Stop and remove current container
+            if not self.stop_container():
+                logger.warning("Failed to stop container during rollback")
+            
+            if not self.remove_container():
+                logger.warning("Failed to remove container during rollback")
+            
+            # Start container with previous image
+            if not self.start_container_with_image(self.previous_image_tag):
+                logger.error("Failed to start container with previous image")
+                return False
+            
+            logger.info(f"Successfully rolled back to: {self.previous_image_tag}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Rollback failed: {e}")
+            return False
+    
+    def start_container_with_image(self, image_tag: str) -> bool:
+        """Start container with specific image tag"""
+        try:
+            logger.info(f"Starting container with image: {image_tag}")
+            
+            # Default environment variables
+            env_vars = {
+                "DEVICE_ID": Config.DEVICE_ID,
+                "DEVICE_NAME": Config.DEVICE_NAME,
+                "BACKEND_URL": Config.BACKEND_URL
+            }
+            
+            container = self.client.containers.run(
+                image_tag,
+                name=Config.CONTAINER_NAME,
+                environment=env_vars,
+                detach=True,
+                restart_policy={"Name": "always"},
+                network_mode="host"
+            )
+            
+            logger.info(f"Container started successfully with image {image_tag}, ID: {container.short_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to start container with image {image_tag}: {e}")
+            return False
     
     def get_current_image_tag(self) -> Optional[str]:
         """Get current running container's image tag"""
@@ -106,29 +178,46 @@ class DockerManager:
             return False
     
     def update_container(self) -> bool:
-        """Update container with latest image"""
+        """Update container with latest image and rollback support"""
         try:
+            logger.info("Starting container update with rollback support")
+            
+            # Save current state for potential rollback
+            if not self.save_current_state():
+                logger.warning("Could not save current state, but continuing with update")
+            
             # Pull latest image
             if not self.pull_latest_image():
-                return False
+                logger.error("Failed to pull latest image, attempting rollback")
+                return self.rollback_to_previous()
             
             # Stop and remove old container
             if not self.stop_container():
-                return False
+                logger.error("Failed to stop container, attempting rollback")
+                return self.rollback_to_previous()
             
             if not self.remove_container():
-                return False
+                logger.error("Failed to remove container, attempting rollback")
+                return self.rollback_to_previous()
             
             # Start new container
             if not self.start_container():
-                return False
+                logger.error("Failed to start new container, attempting rollback")
+                return self.rollback_to_previous()
+            
+            # Verify new container is running
+            time.sleep(5)  # Wait a bit for container to fully start
+            status = self.get_container_status()
+            if not status.get("running", False):
+                logger.error("New container is not running, attempting rollback")
+                return self.rollback_to_previous()
             
             logger.info("Container updated successfully")
             return True
             
         except Exception as e:
-            logger.error(f"Failed to update container: {e}")
-            return False
+            logger.error(f"Update failed with exception: {e}, attempting rollback")
+            return self.rollback_to_previous()
     
     def get_container_status(self) -> Dict[str, Any]:
         """Get container status information"""
