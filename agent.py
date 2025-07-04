@@ -8,6 +8,8 @@ from utils.logger import setup_logger, log_system_info
 from services.backend_client import BackendClient
 from services.docker_manager import DockerManager
 from services.system_monitor import SystemMonitor
+from services.mqtt_client import MqttClient
+from services.sensor_simulator import SensorSimulator
 
 class IoTAgent:
     """Main IoT Agent class that coordinates all services"""
@@ -28,6 +30,27 @@ class IoTAgent:
             self.docker_manager = None
             self.system_monitor = None
             self.logger.warning("Continuing without Docker manager and system monitor")
+        # Initialize MQTT client
+        try:
+            self.mqtt_client = MqttClient(
+                broker=Config.MQTT_BROKER,
+                port=Config.MQTT_PORT,
+                topic_sub=Config.MQTT_TOPIC_SUB,
+                topic_pub=Config.MQTT_TOPIC_PUB,
+                on_message=self.handle_mqtt_message
+            )
+            self.mqtt_client.start()
+            self.logger.info("MQTT client started successfully")
+            # Test publish to verify connection
+            time.sleep(2)  # Wait for connection to establish
+            self.mqtt_client.publish("Agent is online and ready to receive commands")
+            self.logger.info("MQTT test message sent successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize MQTT client: {e}")
+            self.mqtt_client = None
+        # Initialize sensor simulator
+        self.sensor_simulator = SensorSimulator()
+        self.logger.info("Sensor simulator initialized successfully")
     
     def setup_signal_handlers(self):
         """Setup signal handlers for graceful shutdown"""
@@ -98,6 +121,9 @@ class IoTAgent:
         if self.docker_manager:
             schedule.every(Config.UPDATE_CHECK_INTERVAL).seconds.do(self._perform_container_update)
         
+        # Sensor data (every 10 seconds)
+        schedule.every(10).seconds.do(self._send_sensor_data)
+        
         self.logger.info("Scheduled tasks configured")
     
     def _perform_heartbeat(self):
@@ -146,8 +172,12 @@ class IoTAgent:
             return
             
         try:
+            self.logger.info("Starting container update process...")
+            
             # Check for updates from backend
+            self.logger.info("Checking for updates from backend...")
             update_info = self.backend_client.check_for_updates()
+            self.logger.info(f"Backend update response: {update_info}")
             
             if update_info and update_info.get("update_available", False):
                 self.logger.info("Update available, performing container update")
@@ -156,17 +186,32 @@ class IoTAgent:
                 self.backend_client.send_log("Starting container update")
                 
                 # Perform update
+                self.logger.info("Calling docker_manager.update_container()...")
                 success = self.docker_manager.update_container()
                 
                 if success:
+                    self.logger.info("Container updated successfully")
                     self.backend_client.send_log("Container updated successfully")
                 else:
+                    self.logger.error("Container update failed")
                     self.backend_client.send_log("Container update failed", "ERROR")
             else:
-                self.logger.debug("No updates available")
+                self.logger.info("No updates available from backend")
                 
         except Exception as e:
             self.logger.error(f"Error during container update check: {e}")
+            self.logger.error(f"Exception type: {type(e).__name__}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+    
+    def _send_sensor_data(self):
+        """Send simulated sensor data via MQTT."""
+        if not hasattr(self, 'mqtt_client') or self.mqtt_client is None:
+            self.logger.warning("MQTT client not available, skipping sensor data send")
+            return
+        data = self.sensor_simulator.get_data()
+        self.logger.info(f"Publishing sensor data: {data}")
+        self.mqtt_client.publish(f"SENSOR:{data}")
     
     def get_status(self) -> dict:
         """Get agent status"""
@@ -201,6 +246,21 @@ class IoTAgent:
         except Exception as e:
             self.logger.error(f"Error getting status: {e}")
             return {"error": str(e)}
+
+    def handle_mqtt_message(self, topic, payload):
+        self.logger.info(f"Received MQTT message: {payload} on topic: {topic}")
+        if payload == "update":
+            self.logger.info("Received update command via MQTT")
+            self._perform_container_update()
+        elif payload == "restart":
+            self.logger.info("Received restart command via MQTT")
+            self.stop()
+        elif payload == "status":
+            self.logger.info("Received status command via MQTT")
+            if self.mqtt_client:
+                self.mqtt_client.publish(str(self.get_status()))
+        else:
+            self.logger.info(f"Unknown MQTT command: {payload}")
 
 def main():
     """Main entry point"""

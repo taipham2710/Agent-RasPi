@@ -13,7 +13,7 @@ class Config:
     CONTAINER_NAME = os.getenv("CONTAINER_NAME", "iot_app")
     
     # Backend settings
-    BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+    BACKEND_URL = os.getenv("BACKEND_URL", "http://taipham.sytes.net:8000")
     BACKEND_TIMEOUT = int(os.getenv("BACKEND_TIMEOUT", "30"))
     
     # Device settings
@@ -34,4 +34,10 @@ class Config:
     ERROR_WAIT_TIME = int(os.getenv("ERROR_WAIT_TIME", "30"))
     
     # Logging
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO") 
+    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+    
+    # MQTT settings
+    MQTT_BROKER = os.getenv("MQTT_BROKER", "0.tcp.ap.ngrok.io")
+    MQTT_PORT = int(os.getenv("MQTT_PORT", 10092))
+    MQTT_TOPIC_SUB = os.getenv("MQTT_TOPIC_SUB", f"agent/{DEVICE_ID}/cmd")
+    MQTT_TOPIC_PUB = os.getenv("MQTT_TOPIC_PUB", f"agent/{DEVICE_ID}/status") 
