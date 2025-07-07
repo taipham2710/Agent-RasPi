@@ -6,8 +6,8 @@ Test script for the IoT Agent
 import sys
 import time
 
-from agent.config import Config
 from agent.client.backend_client import BackendClient
+from agent.config import Config
 from agent.services.docker_manager import DockerManager
 from agent.services.system_monitor import SystemMonitor
 from agent.utils.logger import setup_logger

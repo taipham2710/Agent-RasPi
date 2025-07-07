@@ -1,17 +1,17 @@
+import os
+import re
 import signal
 import sys
 import time
 from typing import Optional
-import re
-import os
-import requests
 
+import requests
 import schedule
 
-from agent.config import Config
 from agent.client.backend_client import BackendClient
-from agent.services.docker_manager import DockerManager
 from agent.client.mqtt_client import MqttClient
+from agent.config import Config
+from agent.services.docker_manager import DockerManager
 from agent.services.sensor_simulator import SensorSimulator
 from agent.services.system_monitor import SystemMonitor
 from agent.utils.logger import log_system_info, setup_logger
