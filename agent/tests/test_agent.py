@@ -4,7 +4,6 @@ Test script for the IoT Agent
 """
 
 import sys
-import time
 
 from agent.client.backend_client import BackendClient
 from agent.config import Config
@@ -110,7 +109,6 @@ def test_integration():
 
     try:
         # Initialize all services
-        logger = setup_logger()
         backend_client = BackendClient()
         docker_manager = DockerManager()
         system_monitor = SystemMonitor()

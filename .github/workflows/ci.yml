@@ -41,6 +41,7 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
 
   lint-and-test:
     runs-on: ubuntu-latest
@@ -94,7 +95,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest test_agent.py -v --cov=. --cov-report=xml --cov-report=html
+          pytest agent/tests/ -v --cov=. --cov-report=xml --cov-report=html
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -150,6 +151,7 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-image-results.sarif'
+        continue-on-error: true
 
   notify-slack:
     needs: [lint-and-test, docker-build]
@@ -163,18 +165,18 @@ jobs:
           status: success
           channel: '#iot-deployments'
           text: |
-            ✅ **IoT Agent CI/CD Pipeline Success**
+            ✅ IoT Agent CI/CD Pipeline Success
             
-            **Repository:** ${{ github.repository }}
-            **Branch:** ${{ github.ref_name }}
-            **Commit:** ${{ github.sha }}
-            **Author:** ${{ github.actor }}
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
             
-            **Build Status:** All checks passed
-            **Docker Image:** ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+            Build Status: All checks passed
+            Docker Image: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
             
-            **Test Coverage:** Available in Codecov
-            **Security Scan:** Completed
+            Test Coverage: Available in Codecov
+            Security Scan: Completed
             
             View details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
@@ -187,15 +189,15 @@ jobs:
           status: failure
           channel: '#iot-deployments'
           text: |
-            ❌ **IoT Agent CI/CD Pipeline Failed**
+            ❌ IoT Agent CI/CD Pipeline Failed
             
-            **Repository:** ${{ github.repository }}
-            **Branch:** ${{ github.ref_name }}
-            **Commit:** ${{ github.sha }}
-            **Author:** ${{ github.actor }}
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
             
-            **Build Status:** Some checks failed
-            **Failed Jobs:** ${{ needs.*.result }}
+            Build Status: Some checks failed
+            Failed Jobs: ${{ needs.*.result }}
             
             Please check the logs and fix the issues.
             

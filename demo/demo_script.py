@@ -4,26 +4,27 @@ Demo Script for IoT Device Management System
 This script simulates various scenarios for presentation purposes
 
 Time Synchronization Guidance:
-- To ensure accurate log timestamps and device status, synchronize the system time between agent containers and the backend server.
+- To ensure accurate log timestamps and device status, synchronize the system time between
+agent containers and the backend server.
 - Recommended: Use NTP (Network Time Protocol) in your Docker containers and host machines.
 - For Alpine-based images, add to your Dockerfile:
-    RUN apk add --no-cache openntpd && rc-service openntpd start
+RUN apk add --no-cache openntpd && rc-service openntpd start
 - Or, run ntpd in the background in your entrypoint script.
-- Always use UTC for all timestamps in backend and agents, and convert to local time only for display in the frontend.
+- Always use UTC for all timestamps in backend and agents, and convert to local time only for
+  display in the frontend.
 """
 
-import json
 import os
 import random
 import threading
 import time
-from datetime import datetime
 
 import requests
-from dotenv import load_dotenv
+
+# from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+# load_dotenv()
 
 
 class DemoController:
@@ -169,9 +170,14 @@ def demo_scenario_1_basic_operation():
     # Simulate system monitoring
     print("\n💻 Simulating system monitoring...")
     for i in range(1, 4):
+        disk_usage = random.randint(30, 95)
+        network_speed = random.randint(1, 100)
         controller.send_log(
             device_id=i,
-            message=f"System health check - Disk: {random.randint(30, 95)}% used, Network: {random.randint(1, 100)} Mbps",
+            message=(
+                f"System health check - Disk: {disk_usage}% used, "
+                f"Network: {network_speed} Mbps"
+            ),
             log_type="system",
             log_level="info",
         )
@@ -192,7 +198,7 @@ def demo_scenario_2_deployment_operations():
         # Start deployment
         controller.send_log(
             device_id=i,
-            message=f"Starting deployment of version 2.1.0",
+            message="Starting deployment of version 2.1.0",
             log_type="deploy",
             log_level="info",
         )
@@ -201,7 +207,7 @@ def demo_scenario_2_deployment_operations():
         # Deployment success
         controller.send_log(
             device_id=i,
-            message=f"Deployment completed successfully - version 2.1.0 active",
+            message="Deployment completed successfully - version 2.1.0 active",
             log_type="deploy",
             log_level="info",
         )
@@ -211,7 +217,7 @@ def demo_scenario_2_deployment_operations():
     print("\n⚠️ Simulating failed deployment...")
     controller.send_log(
         device_id=4,
-        message=f"Deployment failed - insufficient disk space",
+        message="Deployment failed - insufficient disk space",
         log_type="deploy",
         log_level="error",
     )
@@ -221,7 +227,7 @@ def demo_scenario_2_deployment_operations():
     print("\n🔄 Simulating rollback...")
     controller.send_log(
         device_id=4,
-        message=f"Rolling back to previous version 2.0.5",
+        message="Rolling back to previous version 2.0.5",
         log_type="rollback",
         log_level="warning",
     )
@@ -229,7 +235,7 @@ def demo_scenario_2_deployment_operations():
 
     controller.send_log(
         device_id=4,
-        message=f"Rollback completed successfully",
+        message="Rollback completed successfully",
         log_type="rollback",
         log_level="info",
     )
@@ -253,7 +259,7 @@ def demo_scenario_3_bulk_operations():
     for i in range(1, 6):
         controller.send_log(
             device_id=i,
-            message=f"Bulk deployment initiated - updating to version 2.2.0",
+            message="Bulk deployment initiated - updating to version 2.2.0",
             log_type="deploy",
             log_level="info",
         )
@@ -264,7 +270,7 @@ def demo_scenario_3_bulk_operations():
     for i in range(1, 6):
         controller.send_log(
             device_id=i,
-            message=f"Bulk deployment completed - version 2.2.0 active",
+            message="Bulk deployment completed - version 2.2.0 active",
             log_type="deploy",
             log_level="info",
         )
@@ -288,7 +294,7 @@ def demo_scenario_4_failure_recovery():
     print("\n❌ Simulating device going offline...")
     controller.send_log(
         device_id=3,
-        message=f"Device connection lost - network timeout",
+        message="Device connection lost - network timeout",
         log_type="heartbeat",
         log_level="error",
     )
@@ -298,7 +304,7 @@ def demo_scenario_4_failure_recovery():
     print("\n✅ Simulating device recovery...")
     controller.send_log(
         device_id=3,
-        message=f"Device connection restored - back online",
+        message="Device connection restored - back online",
         log_type="heartbeat",
         log_level="info",
     )
@@ -308,7 +314,7 @@ def demo_scenario_4_failure_recovery():
     print("\n🔄 Simulating error recovery...")
     controller.send_log(
         device_id=3,
-        message=f"System recovery completed - all services restored",
+        message="System recovery completed - all services restored",
         log_type="system",
         log_level="info",
     )
@@ -413,7 +419,8 @@ if __name__ == "__main__":
     print("  python demo/demo_script.py         # Run all demo scenarios")
     print("  python demo/demo_script.py N       # Run scenario N (1-5)")
     print(
-        "\nSet BACKEND_URL env variable to target a specific backend (default: http://localhost:8000)\n"
+        "\nSet BACKEND_URL env variable to target a specific backend "
+        "(default: http://localhost:8000)\n"
     )
     if len(sys.argv) == 1:
         run_full_demo()
