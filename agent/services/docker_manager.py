@@ -7,6 +7,7 @@ from agent.config import Config
 
 logger = logging.getLogger("iot_agent")
 
+
 class DockerManager:
     """Manager for Docker operations with rollback support"""
 

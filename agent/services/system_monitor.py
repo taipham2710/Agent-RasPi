@@ -6,6 +6,7 @@ from agent.config import Config
 
 logger = logging.getLogger("iot_agent")
 
+
 class SystemMonitor:
     """Monitor system resources and health"""
 

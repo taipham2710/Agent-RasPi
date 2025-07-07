@@ -1,5 +1,6 @@
 import random
 
+
 class SensorSimulator:
     """Simulates sensor data for temperature, humidity, and pressure."""
 

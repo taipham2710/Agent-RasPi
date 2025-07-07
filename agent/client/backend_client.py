@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger("iot_agent")
 
+
 class BackendClient:
     """Client for communicating with the backend API"""
 
@@ -49,7 +50,9 @@ class BackendClient:
                     logger.error(f"Request failed after {retries + 1} attempts")
                     return None
 
-    def send_heartbeat(self, version: Optional[str] = None, status: str = "online") -> bool:
+    def send_heartbeat(
+        self, version: Optional[str] = None, status: str = "online"
+    ) -> bool:
         """Send heartbeat to backend"""
         data = {
             "name": Config.DEVICE_NAME,
@@ -64,7 +67,9 @@ class BackendClient:
             logger.error("Failed to send heartbeat")
             return False
 
-    def send_log(self, message: str, level: str = "info", log_type: str = "general") -> bool:
+    def send_log(
+        self, message: str, level: str = "info", log_type: str = "general"
+    ) -> bool:
         """Send log message to backend"""
         data = {
             "device_id": Config.DEVICE_ID,
