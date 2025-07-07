@@ -6,7 +6,7 @@ Development runner for the IoT Agent
 import os
 import sys
 
-from agent import IoTAgent
+from agent.main import IoTAgent
 
 
 def setup_dev_environment():
