@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Agent 1 - Development
+  agent-dev-01:
+    build: .
+    container_name: iot-agent-dev-01
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=1
+      - DEVICE_NAME=dev-pi-07
+      - BACKEND_URL=http://taipham2710.sytes.net:8000/api  # Kết nối với backend local
+      - DOCKER_IMAGE=taipham2710/iot-agent-simple:latest
+      - HEARTBEAT_INTERVAL=10   # Nhanh hơn cho development
+      - LOG_INTERVAL=10         # Log thường xuyên
+      - UPDATE_CHECK_INTERVAL=60
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Cho macOS/Windows
+
+  # Agent 2 - Development
+  agent-dev-02:
+    build: .
+    container_name: iot-agent-dev-05
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=2
+      - DEVICE_NAME=dev-pi-08
+      - BACKEND_URL=http://taipham2710.sytes.net:8000/api
+      - DOCKER_IMAGE=taipham2710/iot-agent-simple:latest
+      - HEARTBEAT_INTERVAL=20
+      - LOG_INTERVAL=10
+      - UPDATE_CHECK_INTERVAL=60
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Agent 3 - Development (sensor simulation)
+  agent-dev-03:
+    build: .
+    container_name: iot-agent-dev-06
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=3
+      - DEVICE_NAME=dev-pi-09
+      - BACKEND_URL=http://taipham2710.sytes.net:8000/api
+      - DOCKER_IMAGE=taipham2710/iot-agent-simple:latest
+      - HEARTBEAT_INTERVAL=15   # Rất nhanh cho testing
+      - LOG_INTERVAL=5          # Log liên tục
+      - UPDATE_CHECK_INTERVAL=30
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway" 

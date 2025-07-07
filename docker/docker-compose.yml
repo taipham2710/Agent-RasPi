@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # Agent 1 - Raspberry Pi chính
+  agent-01:
+    build: .
+    container_name: iot-agent-01
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=1
+      - DEVICE_NAME=raspberry-pi-01
+      - BACKEND_URL=http://backend:8000
+      - DOCKER_IMAGE=taipham2710/agent:latest
+      - HEARTBEAT_INTERVAL=300
+      - LOG_INTERVAL=60
+      - UPDATE_CHECK_INTERVAL=600
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-network
+    depends_on:
+      - backend
+
+  # Agent 2 - Raspberry Pi phụ
+  agent-02:
+    build: .
+    container_name: iot-agent-02
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=2
+      - DEVICE_NAME=raspberry-pi-02
+      - BACKEND_URL=http://backend:8000
+      - DOCKER_IMAGE=taipham2710/agent:latest
+      - HEARTBEAT_INTERVAL=300
+      - LOG_INTERVAL=60
+      - UPDATE_CHECK_INTERVAL=600
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-network
+    depends_on:
+      - backend
+
+  # Agent 3 - Raspberry Pi sensor
+  agent-03:
+    build: .
+    container_name: iot-agent-03
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=3
+      - DEVICE_NAME=raspberry-pi-sensor
+      - BACKEND_URL=http://backend:8000
+      - DOCKER_IMAGE=taipham2710/agent:latest
+      - HEARTBEAT_INTERVAL=180  # Gửi heartbeat thường xuyên hơn
+      - LOG_INTERVAL=30         # Log thường xuyên hơn
+      - UPDATE_CHECK_INTERVAL=300
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-network
+    depends_on:
+      - backend
+
+  # Backend API (FastAPI)
+  backend:
+    image: taipham2710/backend:latest  # Bạn sẽ tạo image này sau
+    container_name: iot-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./iot_devices.db
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./data:/app/data
+    networks:
+      - iot-network
+
+  # Web UI (React)
+  frontend:
+    image: taipham2710/frontend:latest  # Bạn sẽ tạo image này sau
+    container_name: iot-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    networks:
+      - iot-network
+    depends_on:
+      - backend
+
+networks:
+  iot-network:
+    driver: bridge
+
+volumes:
+  logs:
+  data: 

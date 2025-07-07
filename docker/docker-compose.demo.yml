@@ -1,0 +1,373 @@
+version: '3.8'
+
+services:
+  # Agent 1-5: Core IoT Devices
+  agent-demo-01:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-01
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=1
+      - DEVICE_NAME=raspberry-pi-core-01
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=30
+      - LOG_INTERVAL=15
+      - UPDATE_CHECK_INTERVAL=120
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-02:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-02
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=2
+      - DEVICE_NAME=raspberry-pi-core-02
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=30
+      - LOG_INTERVAL=15
+      - UPDATE_CHECK_INTERVAL=120
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-03:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-03
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=3
+      - DEVICE_NAME=raspberry-pi-core-03
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=30
+      - LOG_INTERVAL=15
+      - UPDATE_CHECK_INTERVAL=120
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-04:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-04
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=4
+      - DEVICE_NAME=raspberry-pi-core-04
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=30
+      - LOG_INTERVAL=15
+      - UPDATE_CHECK_INTERVAL=120
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-05:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-05
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=5
+      - DEVICE_NAME=raspberry-pi-core-05
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=30
+      - LOG_INTERVAL=15
+      - UPDATE_CHECK_INTERVAL=120
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  # Agent 6-10: Sensor Devices
+  agent-demo-06:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-06
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=6
+      - DEVICE_NAME=raspberry-pi-sensor-01
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=20
+      - LOG_INTERVAL=10
+      - UPDATE_CHECK_INTERVAL=90
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-07:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-07
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=7
+      - DEVICE_NAME=raspberry-pi-sensor-02
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=20
+      - LOG_INTERVAL=10
+      - UPDATE_CHECK_INTERVAL=90
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-08:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-08
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=8
+      - DEVICE_NAME=raspberry-pi-sensor-03
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=20
+      - LOG_INTERVAL=10
+      - UPDATE_CHECK_INTERVAL=90
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-09:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-09
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=9
+      - DEVICE_NAME=raspberry-pi-sensor-04
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=20
+      - LOG_INTERVAL=10
+      - UPDATE_CHECK_INTERVAL=90
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-10:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-10
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=10
+      - DEVICE_NAME=raspberry-pi-sensor-05
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=20
+      - LOG_INTERVAL=10
+      - UPDATE_CHECK_INTERVAL=90
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  # Agent 11-15: Edge Computing Devices
+  agent-demo-11:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-11
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=11
+      - DEVICE_NAME=raspberry-pi-edge-01
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=45
+      - LOG_INTERVAL=20
+      - UPDATE_CHECK_INTERVAL=150
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-12:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-12
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=12
+      - DEVICE_NAME=raspberry-pi-edge-02
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=45
+      - LOG_INTERVAL=20
+      - UPDATE_CHECK_INTERVAL=150
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-13:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-13
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=13
+      - DEVICE_NAME=raspberry-pi-edge-03
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=45
+      - LOG_INTERVAL=20
+      - UPDATE_CHECK_INTERVAL=150
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-14:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-14
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=14
+      - DEVICE_NAME=raspberry-pi-edge-04
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=45
+      - LOG_INTERVAL=20
+      - UPDATE_CHECK_INTERVAL=150
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-15:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-15
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=15
+      - DEVICE_NAME=raspberry-pi-edge-05
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=45
+      - LOG_INTERVAL=20
+      - UPDATE_CHECK_INTERVAL=150
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  # Agent 16-20: Gateway Devices
+  agent-demo-16:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-16
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=16
+      - DEVICE_NAME=raspberry-pi-gateway-01
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=60
+      - LOG_INTERVAL=30
+      - UPDATE_CHECK_INTERVAL=180
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-17:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-17
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=17
+      - DEVICE_NAME=raspberry-pi-gateway-02
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=60
+      - LOG_INTERVAL=30
+      - UPDATE_CHECK_INTERVAL=180
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-18:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-18
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=18
+      - DEVICE_NAME=raspberry-pi-gateway-03
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=60
+      - LOG_INTERVAL=30
+      - UPDATE_CHECK_INTERVAL=180
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-19:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-19
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=19
+      - DEVICE_NAME=raspberry-pi-gateway-04
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=60
+      - LOG_INTERVAL=30
+      - UPDATE_CHECK_INTERVAL=180
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+  agent-demo-20:
+    image: taipham2710/agent-raspi:v1.0
+    container_name: iot-agent-demo-20
+    restart: unless-stopped
+    environment:
+      - DEVICE_ID=20
+      - DEVICE_NAME=raspberry-pi-gateway-05
+      - BACKEND_URL=http://host.docker.internal:8000/api
+      - HEARTBEAT_INTERVAL=60
+      - LOG_INTERVAL=30
+      - UPDATE_CHECK_INTERVAL=180
+      - LOG_LEVEL=INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/app/logs
+    networks:
+      - iot-demo-network
+
+networks:
+  iot-demo-network:
+    driver: bridge
+
+volumes:
+  demo-logs: 
