@@ -219,8 +219,9 @@ jobs:
       - name: Cleanup Docker cache
         run: |
           docker buildx build \
+            --file docker/Dockerfile \
             --cache-from type=gha \
             --cache-to type=gha,mode=max \
             --load \
             --tag cleanup:latest \
-            . 
+            .
