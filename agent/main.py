@@ -148,65 +148,48 @@ class IoTAgent:
         return (0, 0)
 
     def _check_and_update_version(self):
-        """Check backend for new version and update if needed"""
+        """Check Docker Hub for new version and update if needed (auto, không phụ thuộc biến môi trường tag)"""
         try:
-            update_info = self.backend_client.check_for_updates()
-            latest_version = None
-            # Lấy namespace/repo từ env hoặc mặc định
-            namespace = os.getenv("DOCKERHUB_NAMESPACE", "taipham2710")
-            repo = os.getenv("DOCKERHUB_REPO", "agent-raspi")
-
+            repo = os.getenv("DOCKER_IMAGE", Config.DOCKER_IMAGE)  # just repo, no tag
+            if ":" in repo:
+                repo = repo.split(":")[0]
+            namespace, image_name = repo.split("/")
             def get_latest_dockerhub_tag(namespace, repo):
                 url = f"https://hub.docker.com/v2/repositories/{namespace}/{repo}/tags?page_size=100"
                 try:
                     resp = requests.get(url, timeout=5)
                     tags = [t["name"] for t in resp.json().get("results", [])]
-                    tags = [
-                        t for t in tags if re.match(r"v\d+\.\d+", t) or t == "latest"
-                    ]
-                    tags.sort(
-                        key=lambda x: (
-                            tuple(map(int, re.findall(r"\d+", x)))
-                            if x != "latest"
-                            else (999, 999, 999)
-                        ),
-                        reverse=True,
-                    )
-                    return tags[0] if tags else "latest"
+                    tags = [t for t in tags if re.match(r"v\d+\.\d+", t)]
+                    tags.sort(key=lambda x: tuple(map(int, re.findall(r"\d+", x))), reverse=True)
+                    return tags[0] if tags else "v1.0"
                 except Exception:
-                    return "latest"
-
-            if update_info and update_info.get("latest_version"):
-                latest_version = update_info["latest_version"]
+                    return "v1.0"
+            latest_version = get_latest_dockerhub_tag(namespace, image_name)
+            # Get current image tag from running container
+            if self.docker_manager is not None:
+                current_image = self.docker_manager.get_current_image_tag() or repo
             else:
-                # Fallback: lấy trực tiếp từ Docker Hub
-                latest_version = get_latest_dockerhub_tag(namespace, repo)
-                self.logger.warning(
-                    f"Fallback: Got latest version from Docker Hub: {latest_version}"
-                )
-            current_image = os.getenv("DOCKER_IMAGE", Config.DOCKER_IMAGE)
-            current_version = current_image.split(":")[-1]
-            if self._parse_version(latest_version) > self._parse_version(
-                current_version
-            ):
-                self.logger.info(
-                    f"New version available: {latest_version} > {current_version}. Updating..."
-                )
+                current_image = repo
+            if ":" in current_image:
+                current_version = current_image.split(":")[-1]
+            else:
+                current_version = "v1.0"
+            if self._parse_version(latest_version) > self._parse_version(current_version):
+                self.logger.info(f"New version available: {latest_version} > {current_version}. Updating...")
                 self.backend_client.send_log(
                     f"Updating agent from {current_version} to {latest_version}",
                     level="info",
                     log_type="deploy",
                 )
-                new_image = current_image.split(":")[0] + f":{latest_version}"
-                os.environ["DOCKER_IMAGE"] = new_image
-                Config.DOCKER_IMAGE = new_image
+                new_image = f"{repo}:{latest_version}"
                 success = False
                 if self.docker_manager is not None:
+                    # Pull new image
+                    self.docker_manager.client.images.pull(new_image)
+                    # Restart container with new image
                     success = self.docker_manager.update_container()
                 else:
-                    self.logger.error(
-                        "Docker manager is not available. Cannot update container."
-                    )
+                    self.logger.error("Docker manager is not available. Cannot update container.")
                 if success:
                     self.logger.info(f"Agent updated to {latest_version} successfully.")
                     self.backend_client.send_log(
@@ -215,9 +198,7 @@ class IoTAgent:
                         log_type="deploy",
                     )
                 else:
-                    self.logger.error(
-                        f"Agent update to {latest_version} failed. Rolling back."
-                    )
+                    self.logger.error(f"Agent update to {latest_version} failed. Rolling back.")
                     self.backend_client.send_log(
                         f"Agent update to {latest_version} failed. Rolling back.",
                         level="error",
@@ -240,9 +221,7 @@ class IoTAgent:
                                 log_type="rollback",
                             )
             else:
-                self.logger.info(
-                    f"No update needed. Current: {current_version}, Latest: {latest_version}"
-                )
+                self.logger.info(f"No update needed. Current: {current_version}, Latest: {latest_version}")
         except Exception as e:
             self.logger.error(f"Error during version check/update: {e}")
             self.backend_client.send_log(
