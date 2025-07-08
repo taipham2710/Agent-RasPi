@@ -154,16 +154,21 @@ class IoTAgent:
             if ":" in repo:
                 repo = repo.split(":")[0]
             namespace, image_name = repo.split("/")
+
             def get_latest_dockerhub_tag(namespace, repo):
                 url = f"https://hub.docker.com/v2/repositories/{namespace}/{repo}/tags?page_size=100"
                 try:
                     resp = requests.get(url, timeout=5)
                     tags = [t["name"] for t in resp.json().get("results", [])]
                     tags = [t for t in tags if re.match(r"v\d+\.\d+", t)]
-                    tags.sort(key=lambda x: tuple(map(int, re.findall(r"\d+", x))), reverse=True)
+                    tags.sort(
+                        key=lambda x: tuple(map(int, re.findall(r"\d+", x))),
+                        reverse=True,
+                    )
                     return tags[0] if tags else "v1.0"
                 except Exception:
                     return "v1.0"
+
             latest_version = get_latest_dockerhub_tag(namespace, image_name)
             # Get current image tag from running container
             if self.docker_manager is not None:
@@ -174,8 +179,12 @@ class IoTAgent:
                 current_version = current_image.split(":")[-1]
             else:
                 current_version = "v1.0"
-            if self._parse_version(latest_version) > self._parse_version(current_version):
-                self.logger.info(f"New version available: {latest_version} > {current_version}. Updating...")
+            if self._parse_version(latest_version) > self._parse_version(
+                current_version
+            ):
+                self.logger.info(
+                    f"New version available: {latest_version} > {current_version}. Updating..."
+                )
                 self.backend_client.send_log(
                     f"Updating agent from {current_version} to {latest_version}",
                     level="info",
@@ -189,7 +198,9 @@ class IoTAgent:
                     # Restart container with new image
                     success = self.docker_manager.update_container()
                 else:
-                    self.logger.error("Docker manager is not available. Cannot update container.")
+                    self.logger.error(
+                        "Docker manager is not available. Cannot update container."
+                    )
                 if success:
                     self.logger.info(f"Agent updated to {latest_version} successfully.")
                     self.backend_client.send_log(
@@ -198,7 +209,9 @@ class IoTAgent:
                         log_type="deploy",
                     )
                 else:
-                    self.logger.error(f"Agent update to {latest_version} failed. Rolling back.")
+                    self.logger.error(
+                        f"Agent update to {latest_version} failed. Rolling back."
+                    )
                     self.backend_client.send_log(
                         f"Agent update to {latest_version} failed. Rolling back.",
                         level="error",
@@ -221,7 +234,9 @@ class IoTAgent:
                                 log_type="rollback",
                             )
             else:
-                self.logger.info(f"No update needed. Current: {current_version}, Latest: {latest_version}")
+                self.logger.info(
+                    f"No update needed. Current: {current_version}, Latest: {latest_version}"
+                )
         except Exception as e:
             self.logger.error(f"Error during version check/update: {e}")
             self.backend_client.send_log(
