@@ -161,6 +161,9 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
       - name: Notify Slack - Success
         if: success()
         uses: 8398a7/action-slack@v3
@@ -176,7 +179,7 @@ jobs:
             Author: ${{ github.actor }}
             
             Build Status: All checks passed
-            Docker Image: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+            Docker Image: ${{ env.IMAGE_NAME }}:v${{ env.VERSION }}
             
             Test Coverage: Available in Codecov
             Security Scan: Completed
