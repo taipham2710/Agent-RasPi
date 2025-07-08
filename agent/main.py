@@ -161,14 +161,20 @@ class IoTAgent:
                 try:
                     resp = requests.get(url, timeout=5)
                     tags = [t["name"] for t in resp.json().get("results", [])]
-                    tags = [t for t in tags if re.match(r"v\d+\.\d+", t)]
+                    tags = [
+                        t for t in tags if re.match(r"v\d+\.\d+", t) or t == "latest"
+                    ]
                     tags.sort(
-                        key=lambda x: tuple(map(int, re.findall(r"\d+", x))),
+                        key=lambda x: (
+                            tuple(map(int, re.findall(r"\d+", x)))
+                            if x != "latest"
+                            else (999, 999, 999)
+                        ),
                         reverse=True,
                     )
-                    return tags[0] if tags else "v1.0"
+                    return tags[0] if tags else "latest"
                 except Exception:
-                    return "v1.0"
+                    return "latest"
 
             if update_info and update_info.get("latest_version"):
                 latest_version = update_info["latest_version"]
@@ -178,7 +184,8 @@ class IoTAgent:
                 self.logger.warning(
                     f"Fallback: Got latest version from Docker Hub: {latest_version}"
                 )
-            current_version = Config.DOCKER_IMAGE.split(":")[-1]
+            current_image = os.getenv("DOCKER_IMAGE", Config.DOCKER_IMAGE)
+            current_version = current_image.split(":")[-1]
             if self._parse_version(latest_version) > self._parse_version(
                 current_version
             ):
@@ -190,7 +197,8 @@ class IoTAgent:
                     level="info",
                     log_type="deploy",
                 )
-                new_image = Config.DOCKER_IMAGE.split(":")[0] + f":{latest_version}"
+                new_image = current_image.split(":")[0] + f":{latest_version}"
+                os.environ["DOCKER_IMAGE"] = new_image
                 Config.DOCKER_IMAGE = new_image
                 success = False
                 if self.docker_manager is not None:
@@ -207,12 +215,30 @@ class IoTAgent:
                         log_type="deploy",
                     )
                 else:
-                    self.logger.error(f"Agent update to {latest_version} failed.")
+                    self.logger.error(
+                        f"Agent update to {latest_version} failed. Rolling back."
+                    )
                     self.backend_client.send_log(
-                        f"Agent update to {latest_version} failed.",
+                        f"Agent update to {latest_version} failed. Rolling back.",
                         level="error",
                         log_type="rollback",
                     )
+                    if self.docker_manager is not None:
+                        rollback_success = self.docker_manager.rollback_to_previous()
+                        if rollback_success:
+                            self.logger.info("Rollback to previous image successful.")
+                            self.backend_client.send_log(
+                                "Rollback to previous image successful.",
+                                level="info",
+                                log_type="rollback",
+                            )
+                        else:
+                            self.logger.error("Rollback to previous image failed.")
+                            self.backend_client.send_log(
+                                "Rollback to previous image failed.",
+                                level="error",
+                                log_type="rollback",
+                            )
             else:
                 self.logger.info(
                     f"No update needed. Current: {current_version}, Latest: {latest_version}"
